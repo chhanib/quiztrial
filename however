@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>'However' Usage Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .question {
+            margin-bottom: 20px;
+        }
+        button {
+            margin-top: 20px;
+        }
+        #statistics {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>'However' Usage Quiz</h1>
+    <p>Is the use of 'however' correct in the following sentences?</p>
+    <form id="quizForm">
+        <div id="questions"></div>
+        <button type="button" onclick="submitQuiz()">Submit</button>
+    </form>
+    <div id="result"></div>
+    <div id="statistics"></div>
+    <button id="showStats" style="display:none;" onclick="showStatistics()">Show Overall Statistics</button>
+
+    <script>
+        const questions = [
+            "Parliamentary elections were held three times over the period analysed – in 2010, 2016, and 2020, however the role of elections was not mentioned as a factor in governmental decision-making for social protection.",
+            "I would, however, like to stress that universal benefits are the only means of effectively reaching the poorest members of society.",
+            "The Iraqi government provides in-service training for teachers, however there is no clear indication of the specific training or professional development available for teachers in disability inclusive education.",
+            "However, the approach taken by UNICEF has resulted in a range of challenges.",
+            "One parent explained that they were offered treatment overseas by the MoH, however they were unable to accept the offer as they could not afford to pay for passport fees and were therefore unable to travel.",
+            "There is, however, nothing wrong with the overall design of the system.",
+            "At the PHC level, surveillance services are also available which can support early diagnosis and access to treatments for the prevention of disabilities, however, this service is limited in its delivery and impact.",
+            "I do not know whether the Government would, however, be interested in implementing a more inclusive old age pension.",
+            "In the preceding two decades the Human Development Index (HDI) trended upwards, however the period of 2012-2021 has been marked by more or less stagnant HDI improvements"
+        ];
+
+        const questionsContainer = document.getElementById('questions');
+
+        questions.forEach((question, index) => {
+            const questionHtml = `
+                <div class="question">
+                    <p>${index + 1}. ${question}</p>
+                    <input type="radio" name="q${index}" value="correct" id="q${index}c"> <label for="q${index}c">Correct</label>
+                    <input type="radio" name="q${index}" value="incorrect" id="q${index}i"> <label for="q${index}i">Incorrect</label>
+                </div>
+            `;
+            questionsContainer.innerHTML += questionHtml;
+        });
+
+        function submitQuiz() {
+            let score = 0;
+            const totalQuestions = questions.length;
+            const responses = [];
+
+            for (let i = 0; i < totalQuestions; i++) {
+                const selectedAnswer = document.querySelector(`input[name="q${i}"]:checked`);
+                if (selectedAnswer) {
+                    responses.push(selectedAnswer.value);
+                    // For this example, we'll consider all uses as "incorrect" except for questions 2, 4, and 6
+                    const correctAnswers = [false, true, false, true, false, true, false, false, false];
+                    if ((selectedAnswer.value === "correct" && correctAnswers[i]) ||
+                        (selectedAnswer.value === "incorrect" && !correctAnswers[i])) {
+                        score++;
+                    }
+                } else {
+                    responses.push(null);
+                }
+            }
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `You scored ${score} out of ${totalQuestions}.`;
+
+            // Save responses to local storage
+            saveResponses(responses);
+
+            // Show the statistics button
+            document.getElementById('showStats').style.display = 'block';
+        }
+
+        function saveResponses(responses) {
+            let allResponses = JSON.parse(localStorage.getItem('quizResponses')) || [];
+            allResponses.push(responses);
+            localStorage.setItem('quizResponses', JSON.stringify(allResponses));
+        }
+
+        function showStatistics() {
+            const allResponses = JSON.parse(localStorage.getItem('quizResponses')) || [];
+            const totalResponses = allResponses.length;
+            const stats = questions.map(() => ({correct: 0, incorrect: 0}));
+
+            allResponses.forEach(response => {
+                response.forEach((answer, index) => {
+                    if (answer === 'correct') stats[index].correct++;
+                    if (answer === 'incorrect') stats[index].incorrect++;
+                });
+            });
+
+            let statsHtml = `<h2>Overall Statistics (${totalResponses} responses)</h2>`;
+            stats.forEach((stat, index) => {
+                statsHtml += `
+                    <p>Question ${index + 1}:</p>
+                    <ul>
+                        <li>Correct: ${stat.correct} (${((stat.correct / totalResponses) * 100).toFixed(2)}%)</li>
+                        <li>Incorrect: ${stat.incorrect} (${((stat.incorrect / totalResponses) * 100).toFixed(2)}%)</li>
+                    </ul>
+                `;
+            });
+
+            document.getElementById('statistics').innerHTML = statsHtml;
+        }
+    </script>
+</body>
+</html>
